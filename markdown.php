@@ -2485,11 +2485,20 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 		return $list_str;
 	}
 	function _processDefListItems_callback_dt($matches) {
+		$anchor_regexp = '/\{\#([-_:a-zA-Z0-9]+)\}/';
 		$terms = explode("\n", trim($matches[1]));
 		$text = '';
+		$id = array();
+
 		foreach ($terms as $term) {
+			$anchor = '';
+			if (preg_match($anchor_regexp, $term, $id) > 0) {
+				$term = preg_replace($anchor_regexp, '', $term);
+				$anchor = '<a name="'.trim($id[1]).'"></a>';
+			}
+
 			$term = $this->runSpanGamut(trim($term));
-			$text .= "\n<dt>" . $term . "</dt>";
+			$text .= "\n<dt>". $anchor . $term . "</dt>";
 		}
 		return $text . "\n";
 	}
