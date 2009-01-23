@@ -34,6 +34,11 @@ define( 'MARKDOWNEXTRA_VERSION',  "1.2.3" ); # Wed 31 Dec 2008
 @define( 'MARKDOWN_FN_LINK_CLASS',         "" );
 @define( 'MARKDOWN_FN_BACKLINK_CLASS',     "" );
 
+# Open a new browser window on external links?
+@define( 'MARKDOWN_EL_NEW_WINDOW',      true);
+@define( 'MARKDOWN_EL_LOCAL_DOMAIN',    null);   # Leave as null to autodetect
+@define( 'MARKDOWN_EL_CSS_CLASS', 'external');   # Leave as null for no class
+
 
 #
 # WordPress settings:
@@ -758,7 +763,7 @@ class Markdown_Parser {
 				$title = $this->encodeAttribute($title);
 				$result .=  " title=\"$title\"";
 			}
-		
+
 			$link_text = $this->runSpanGamut($link_text);
 			$result .= ">$link_text</a>";
 			$result = $this->hashPart($result);
@@ -1664,6 +1669,10 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 	# Optional class attribute for footnote links and backlinks.
 	var $fn_link_class = MARKDOWN_FN_LINK_CLASS;
 	var $fn_backlink_class = MARKDOWN_FN_BACKLINK_CLASS;
+
+	var $el_new_window = MARKDOWN_EL_NEW_WINDOW;
+	var $el_local_domain = MARKDOWN_EL_LOCAL_DOMAIN;
+	var $el_css_class = MARKDOWN_EL_CSS_CLASS;
 	
 	# Predefined abbreviations.
 	var $predef_abbr = array();
@@ -1676,6 +1685,10 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 		# Add extra escapable characters before parent constructor 
 		# initialize the table.
 		$this->escape_chars .= ':|';
+
+		if ($this->el_local_domain === null) {
+			$this->el_local_domain = $_SERVER['SERVER_NAME'];
+		}
 		
 		# Insert extra document, block, and span transformations. 
 		# Parent constructor will do the sorting.
@@ -2196,6 +2209,77 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 		return $this->hashPart($text, 'C');
 	}
 
+	function _doAnchors_inline_callback($matches) {
+		// $whole_match	=  $matches[1];
+		$link_text		=  $this->runSpanGamut($matches[2]);
+		$url			=  $matches[3] == '' ? $matches[4] : $matches[3];
+		$title			=& $matches[7];
+
+		$url = $this->encodeAttribute($url);
+
+		$result = "<a href=\"$url\"";
+		if (isset($title)) {
+			$title = $this->encodeAttribute($title);
+			$result .=  " title=\"$title\"";
+		}
+
+		if ($this->el_new_window && preg_match('/^https?\:\/\//', $url) && !preg_match('/^https?\:\/\/'.$this->el_local_domain.'/', $url)) {
+			$result .= ' target="_blank"';
+
+			if ($this->el_css_class) {
+				$result .= ' class="'.$this->el_css_class.'"';
+			}
+		}
+
+		$link_text = $this->runSpanGamut($link_text);
+		$result .= ">$link_text</a>";
+
+		return $this->hashPart($result);
+	}
+
+	function _doAnchors_reference_callback($matches) {
+		$whole_match =  $matches[1];
+		$link_text   =  $matches[2];
+		$link_id     =& $matches[3];
+		$result      =  '';
+
+		if ($link_id == "") {
+			# for shortcut links like [this][] or [this].
+			$link_id = $link_text;
+		}
+
+		# lower-case and turn embedded newlines into spaces
+		$link_id = strtolower($link_id);
+		$link_id = preg_replace('{[ ]?\n}', ' ', $link_id);
+
+		if (isset($this->urls[$link_id])) {
+			$url = $this->urls[$link_id];
+			$url = $this->encodeAttribute($url);
+
+			$result = "<a href=\"$url\"";
+			if ( isset( $this->titles[$link_id] ) ) {
+				$title = $this->titles[$link_id];
+				$title = $this->encodeAttribute($title);
+				$result .=  " title=\"$title\"";
+			}
+
+			if ($this->el_new_window && preg_match('/^https?\:\/\//', $url) && !preg_match('/^https?\:\/\/'.$this->el_local_domain.'/', $url)) {
+				$result .= ' target="_blank"';
+
+				if ($this->el_css_class) {
+					$result .= ' class="'.$this->el_css_class.'"';
+				}
+			}
+
+			$link_text = $this->runSpanGamut($link_text);
+			$result .= ">$link_text</a>";
+			$result = $this->hashPart($result);
+		}
+		else {
+			$result = $whole_match;
+		}
+		return $result;
+	}
 
 	function doHeaders($text) {
 	#
