@@ -40,6 +40,11 @@ define( 'MARKDOWNEXTRA_VERSION',  "1.2.3" ); # Wed 31 Dec 2008
 @define( 'MARKDOWN_EL_NEW_WINDOW',      true);   # Open link in a new browser?
 @define( 'MARKDOWN_EL_CSS_CLASS', 'external');   # Leave as null for no class
 
+# Enables header auto-self-linking.
+@define( 'MARKDOWN_HA_ENABLE',             true );   # Use this feature at all?
+@define( 'MARKDOWN_HA_CLASS', 'hidden-selflink' );   # Leave as null for no class
+@define( 'MARKDOWN_HA_TEXT',           '&larr;' );   # The text to use as the link
+
 
 #
 # WordPress settings:
@@ -1675,6 +1680,10 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 	var $el_local_domain = MARKDOWN_EL_LOCAL_DOMAIN;
 	var $el_new_window = MARKDOWN_EL_NEW_WINDOW;
 	var $el_css_class = MARKDOWN_EL_CSS_CLASS;
+
+	var $ha_enable = MARKDOWN_HA_ENABLE;
+	var $ha_class = MARKDOWN_HA_CLASS;
+	var $ha_text = MARKDOWN_HA_TEXT;
 	
 	# Predefined abbreviations.
 	var $predef_abbr = array();
@@ -2336,14 +2345,35 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 			return $matches[0];
 		$level = $matches[3]{0} == '=' ? 1 : 2;
 		$attr  = $this->_doHeaders_attr($id =& $matches[2]);
-		$block = "<h$level$attr>".$this->runSpanGamut($matches[1])."</h$level>";
+		$body  = $this->runSpanGamut($matches[1]);
+		$body  = $this->_doHeaders_selflink($id, $body);
+
+		$block = "<h$level$attr>$body</h$level>";
 		return "\n" . $this->hashBlock($block) . "\n\n";
 	}
 	function _doHeaders_callback_atx($matches) {
 		$level = strlen($matches[1]);
 		$attr  = $this->_doHeaders_attr($id =& $matches[3]);
-		$block = "<h$level$attr>".$this->runSpanGamut($matches[2])."</h$level>";
+		$body  = $this->runSpanGamut($matches[2]);
+		$body = $this->_doHeaders_selflink($id, $body);
+
+		$block = "<h$level$attr>$body</h$level>";
 		return "\n" . $this->hashBlock($block) . "\n\n";
+	}
+	function _doHeaders_selflink($id, $body) {
+		if (!empty($id)) {
+			$link = '<a href="#'.$id.'"';
+
+			if ($this->ha_class) {
+				$link .= ' class="'.$this->ha_class.'"';
+			}
+
+			$link .= '>'.$this->ha_text.'</a>';
+
+			$body .= $link;
+		}
+
+		return $body;
 	}
 
 
