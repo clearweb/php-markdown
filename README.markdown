@@ -700,6 +700,9 @@ Copyright (c) 2004-2005 Michel Fortin
 <http://www.michelf.com/>  
 All rights reserved.
 
+Additional features and fixes by Henrik Paul
+<http://github.com/wolfie/php-markdown/tree/extra>
+
 Based on Markdown  
 Copyright (c) 2003-2005 John Gruber   
 <http://daringfireball.net/>   
