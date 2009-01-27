@@ -2611,14 +2611,14 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 		$id = array();
 
 		foreach ($terms as $term) {
-			$anchor = '';
+			$id = '';
 			if (preg_match($anchor_regexp, $term, $id) > 0) {
 				$term = preg_replace($anchor_regexp, '', $term);
-				$anchor = '<a name="'.trim($id[1]).'"'.$this->empty_element_suffix;
+				$id = ' id="'.trim($id[1]).'"';
 			}
 
 			$term = $this->runSpanGamut(trim($term));
-			$text .= "\n<dt>". $anchor . $term . "</dt>";
+			$text .= "\n<dt$id>" . $term . "</dt>";
 		}
 		return $text . "\n";
 	}
