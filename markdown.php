@@ -2614,7 +2614,7 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 			$anchor = '';
 			if (preg_match($anchor_regexp, $term, $id) > 0) {
 				$term = preg_replace($anchor_regexp, '', $term);
-				$anchor = '<a name="'.trim($id[1]).'"></a>';
+				$anchor = '<a name="'.trim($id[1]).'"'.$this->empty_element_suffix;
 			}
 
 			$term = $this->runSpanGamut(trim($term));
