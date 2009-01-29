@@ -2596,7 +2596,7 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 			(?= \n+ 						# stop at next definition mark,
 				(?:							# next term or end of text
 					[ ]{0,'.$less_than_tab.'} [:][ ]	|
-					<dt> | \z
+					<dt | \z
 				)
 			)
 			}xm',
