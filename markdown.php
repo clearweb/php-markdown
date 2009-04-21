@@ -2617,6 +2617,10 @@ class MarkdownExtra_Parser extends Markdown_Parser {
 				$id = ' id="'.trim($id[1]).'"';
 			}
 
+			if (count($id) === 0) {
+				$id = '';
+			}
+
 			$term = $this->runSpanGamut(trim($term));
 			$text .= "\n<dt$id>" . $term . "</dt>";
 		}
